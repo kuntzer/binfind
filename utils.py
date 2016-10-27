@@ -1,4 +1,5 @@
 import cPickle as pickle
+import csv
 import gzip
 import numpy as np
 import os
@@ -48,3 +49,44 @@ def classify(pred, threshold):
 	classification[pred >= threshold] = 1
 	return classification
 
+def load_bmg(fname, main_sequence):	
+	data=[]
+	with open(fname+'.dat') as observability_file:
+		observability_data = csv.reader(observability_file, delimiter="\t")
+		for row in observability_data:
+		# if line is empty, skip otherwise filter out the blank
+			dline=row[0].split()
+			if len(dline)==17 and not dline[6].isdigit():
+				dline.insert(6, '0')
+			if dline[0][0]=='#': continue
+			data.append(np.asarray(dline, dtype=np.float))
+			
+	data=np.asarray(data)
+	if main_sequence: 
+		data=data[data[:,2] == 5] #Takes only main sequence stars
+	
+	return data
+
+def rdisk(radius, norien=25, nrad=35):
+	orientations = np.linspace(0., np.pi * 2., norien, endpoint=False)
+	dtheta = (orientations[:2] / 2.)[-1]
+
+	nrad = float(nrad)
+	radii = ( np.arange(nrad) / (nrad - 1) )**2 * float(radius)
+
+	coord = []
+	seen_nought = False
+
+	for ir, r in enumerate(radii):
+		if r == 0 :
+			if not seen_nought:
+				coord.append([0., 0.])
+				seen_nought = True
+			continue
+
+		for orientation in orientations:
+			x = np.cos(orientation + dtheta * (ir % 2)) * r
+			y = np.sin(orientation + dtheta * (ir % 2)) * r
+			coord.append([x, y])
+
+	return np.asarray(coord)
