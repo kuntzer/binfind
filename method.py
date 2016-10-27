@@ -2,7 +2,6 @@
 A container class for all the algorithms to provide common io methods and other utilities.
 """
 
-import numpy as np
 import os
 
 import utils
@@ -53,9 +52,4 @@ class Method:
 			
 		if not warn is None:
 			logger.warn(warn)
-			
-	def classify(self, features, threshold, *args, **params):
-		pred = self.classifier.predict(features, *args, **params)
-		classification = np.zeros_like(pred)
-		classification[pred >= threshold] = 1
-		return classification
+

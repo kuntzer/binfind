@@ -43,3 +43,8 @@ def mkdir(somedir):
 	if not os.path.isdir(somedir):
 		os.makedirs(somedir)
 
+def classify(pred, threshold):
+	classification = np.zeros_like(pred)
+	classification[pred >= threshold] = 1
+	return classification
+
