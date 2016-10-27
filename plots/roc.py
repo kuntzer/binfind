@@ -83,7 +83,7 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 	ax.plot([0, 1], [0, 1], ls='--', c='k')
 	ax.set_xlabel(r"$\mathrm{False\ positive\ rate}$")
 	ax.set_ylabel(r"$\mathrm{True\ positive\ rate}$")
-	ax.legend(loc='best')
+	ax.legend(loc=4)
 	ax.set_xlim([0, 1])
 	ax.set_ylim([0, 1])
 		

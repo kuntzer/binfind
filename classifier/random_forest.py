@@ -14,7 +14,7 @@ class RandomForestClassifier(method.Method):
 	def __str__(self):
 		return "RandomForestClassifier from scikit-learn.org"
 		
-	def train(self, features, truth, *args, **params):
+	def train(self, truth, features, *args, **params):
 		self.classifier.fit(features, truth, *args, **params)
 		
 	def predict(self, features):
