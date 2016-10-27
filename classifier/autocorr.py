@@ -20,26 +20,37 @@ class ACF(method.Method):
 			self.tot_weight += w
 		
 		self.n_data = n_data
+		self.boundaries = None
 		
 	def __str__(self):
 		return "Auto-Correlation Analysis"
 		
-	def predict(self, features, boundaries=[0, 50], indiv_channel=False):
+	def predict(self, features, boundaries=None, indiv_channel=False):
 		points = 0
 		indiv_points = {}
+		not_saved_bound = self.boundaries is None
+		if not_saved_bound:
+			self.boundaries = {}
 		for ch in self.channel_ids:
 			acf = self._acf(features[:,self.channel_ids[ch]])
 			sacf = np.sum(acf, axis=1)
+			
+			if boundaries is None:
+				if not_saved_bound:
+					boundary = np.percentile(sacf, 95)
+					self.boundaries[ch] = boundary
+				else:
+					boundary = self.boundaries[ch]
+			else:
+				boundary = boundaries[ch]
+				
+			sacf = self._norm_points(sacf, boundary)
+			
 			points += sacf * self.channel_weights[ch]
 			indiv_points[ch] = sacf
-		points /= self.tot_weight
+		points /= (3. * self.tot_weight)
 		
-		# Clip and normalise the outputs in the [0, 1] range
-		points = self._norm_points(points, boundaries)
-
 		if indiv_channel:
-			for ch in self.channel_ids:
-				indiv_points[ch] = self._norm_points(indiv_points[ch], boundaries)
 			return points, indiv_points
 		
 		return points
@@ -50,6 +61,6 @@ class ACF(method.Method):
 		return np.array(result)
 	
 	def _norm_points(self, points, boundaries):
-		points = np.clip(points, boundaries[0], boundaries[1])
-		return (points - boundaries[0]) / (boundaries[1] - boundaries[0])
+		points = np.clip(points, 0, boundaries)
+		return points / boundaries
 		

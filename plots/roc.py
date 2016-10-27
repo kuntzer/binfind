@@ -45,19 +45,15 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 			l = r'$AUC={:.02f}$'.format(auc)
 		else:
 			l = r'${:s}={:.02f}$'.format(l, auc)
-		if metric is not None:
-			lw = 1
-		else:
-			lw = 2
 			
-		mykwargs = {"ls":"-", "alpha":1., "lw":lw, "color":c, "label":l}
+		mykwargs = {"ls":"-", "alpha":1., "lw":1.5, "color":c, "label":l}
 		# We overwrite these mykwargs with any user-specified kwargs:
 		mykwargs.update(kwargs)
 			
 		ax.plot(fpr_, tpr_, **mykwargs)
 		
 		if metric is not None:
-			m = np.concatenate([[metric[0]], metric[indx], [metric[-1]]])
+			m = np.concatenate([[metric[-1]], metric[indx], [metric[0]]])
 			
 			# Round up to the nearest 0.1
 			vmin = np.floor(np.amin(m) * 10) / 10
@@ -68,9 +64,9 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 			points = np.array([fpr_, tpr_]).T.reshape(-1, 1, 2)
 			segments = np.concatenate([points[:-1], points[1:]], axis=1)
 			
-			lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax))
+			lc = LineCollection(segments, cmap=cmap, alpha=0.8, norm=plt.Normalize(vmin, vmax))
 			lc.set_array(m)
-			lc.set_linewidth(5)
+			lc.set_linewidth(6)
 			plt.gca().add_collection(lc)
 			
 	if metric is not None:

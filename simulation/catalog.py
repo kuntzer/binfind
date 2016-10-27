@@ -87,15 +87,14 @@ class Catalog():
 			sep = cat_star[4]
 			con = cat_star[3]
 			
-			if (sep > 0 and con > 0) and con <= self.crit_contrast:
+			if sep >= self.crit_angsep and con <= self.crit_contrast:
 				# Convert from arcsec to small px (1/12 Euclid px)
 				# TODO: Bad, it's hard-coded!!!!
-				ang2px = 1. / (0.1/(12))
-				r = sep * ang2px
+				r = sep/(0.1/(12))
 		
 				phi = np.random.uniform(0.,2.*np.pi)
-				dx = r * np.cos(phi)
-				dy = r * np.sin(phi)
+				dx = r*np.cos(phi)
+				dy = r*np.sin(phi)
 			
 				# This is for the LOS and inclination:
 				LOSa = np.random.uniform(0,np.pi/2.)

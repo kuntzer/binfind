@@ -1,3 +1,5 @@
+from __future__ import division
+
 from scipy.spatial import cKDTree
 import numpy as np
 
@@ -34,15 +36,21 @@ class Observations():
 		assert np.size(id_null) == 1
 		self.id_null = id_null[0]
 		
+		#self.meane = []
 		self.meanr2 = 0
 		for x, y in zip(x_psf, y_psf):
 			self.meanr2 += self.fields_sigma[self.id_null](x, y)
+			#e1_ = self.fields_e1[self.id_null](x, y)
+			#e2_ = self.fields_e2[self.id_null](x, y)
+			#self.meane.append(np.hypot(e1_, e2_))
 		self.meanr2 /= len(x_psf)
+		self.meane = 0.08
 	
 	def observe(self, catalog, n_exposures, delta_inbetween_frame):
 		
 		self.n_exposures = n_exposures
 		observed_stars = []	
+		count_doubles = 0
 		# Now, for each star, get the position of the binary
 		for this_star in catalog:
 			
@@ -58,6 +66,8 @@ class Observations():
 			obs_ss = []
 			for _ in range(n_exposures):	
 				if this_star[0] == 1:
+					count_doubles += 1./n_exposures
+					
 					# Preparing the selection of the interpolation for no binaries
 					if con > self.contrasts[-1]: 
 						idcons = [utils.find_nearest(self.contrasts, con)]
@@ -89,12 +99,10 @@ class Observations():
 					e2_star = self.fields_e2[self.id_null](x_star, y_star)
 					sigma_star = self.fields_sigma[self.id_null](x_star, y_star)
 					
-					
 				# Adding some noise in the measure of e1, e2
-				# prob(N>maxval) ~ 1e-5
-				e1_star += np.random.normal(scale=self.ei_max_error/3.8)
-				e2_star += np.random.normal(scale=self.ei_max_error/3.8)
-				sigma_star += np.random.normal(scale=self.r2_max_error/3.8) * self.meanr2
+				e1_star += np.random.normal(scale=self.ei_max_error) * self.meane
+				e2_star += np.random.normal(scale=self.ei_max_error) * self.meane
+				sigma_star += np.random.normal(scale=self.r2_max_error) * self.meanr2
 					
 				# Adding to the catalogue
 				obs_ss.append([x_star, y_star, e1_star, e2_star, sigma_star])
@@ -102,9 +110,10 @@ class Observations():
 				x_star += (float(delta_inbetween_frame[0]) * 0.1 / 360.)
 				y_star += (float(delta_inbetween_frame[1]) * 0.1 / 360.)
 			observed_stars.append(obs_ss)	
+		logger.info("Observed {} stars, {:1.1f}% doubles".format(len(observed_stars), count_doubles/len(observed_stars)*100))
 		self.observed_stars = np.asarray(observed_stars)
 		
-	def substract_fields(self):
+	def substract_fields(self, eps=0.):
 		obs_x = self.observed_stars[:,:,0].flatten()
 		obs_y = self.observed_stars[:,:,1].flatten()
 		
@@ -114,9 +123,9 @@ class Observations():
 		fiducial_sigma = self.fields_sigma[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
 		
 		pos = [obs_x, obs_y]
-		dev_e1 = (self.observed_stars[:,:,2] - fiducial_e1) / fiducial_e1
-		dev_e2 = (self.observed_stars[:,:,3] - fiducial_e2) / fiducial_e2
-		dev_r2 = (self.observed_stars[:,:,4] - fiducial_sigma) / fiducial_sigma	
+		dev_e1 = (self.observed_stars[:,:,2] - fiducial_e1) / (fiducial_e1 + eps)
+		dev_e2 = (self.observed_stars[:,:,3] - fiducial_e2) / (fiducial_e2 + eps)
+		dev_r2 = (self.observed_stars[:,:,4] - fiducial_sigma) / (fiducial_sigma + eps)	
 		
 		features = np.array([dev_e1.T, dev_e2.T, dev_r2.T]).reshape([3*self.n_exposures, n_stars_obs]).T
 		
