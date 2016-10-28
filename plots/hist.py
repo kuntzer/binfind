@@ -19,7 +19,7 @@ def hist(ax, stars_characteristics, predictions):
 	obs_stars = stars_characteristics[observed, 1].flatten() / .12 # Convert from Euclid small px to mas
 	ax.hist(obs_stars, binst, histtype='stepfilled', color="darkgrey", alpha=0.8)
 	
-	binst = stats.mstats.mquantiles(all_stars, [0.,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.])
+	binst = stats.mstats.mquantiles(all_stars, [0.,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.99,1.])
 	#binst = 6
 	nt, binst = np.histogram(all_stars, binst)
 	nd, _ = np.histogram(obs_stars, bins=binst)
