@@ -105,22 +105,24 @@ class Catalog():
 							
 				r = np.hypot(dx, dy)
 								
-				if r < self.crit_angsep:
+				if r < self.crit_angsep/(0.1/(12)):
 					is_bin = False
-				
-				is_bin = True
-				# If we have a separation larger than 0.5 Euclid pixel, it's outside of what we computed,
-				# let's shout an error (but do not raise it) and clip the rslt
-				if r > 6:
-					r_old = r 
-					rfact = np.random.uniform(0.1, 4.)
-					dx /= (np.sqrt(r/rfact))
-					dy /= (np.sqrt(r/rfact))
-					r = np.hypot(dx, dy)
-					message = 'Got a radius larger than 6 small px: {:1.3f}\tnew r: {:1.3f}'.format(r_old, r)
-					logger.warning(message)
+				else:
+					is_bin = True
+					# If we have a separation larger than 0.5 Euclid pixel, it's outside of what we computed,
+					# let's shout an error (but do not raise it) and clip the rslt
+					if r > 6:
+						r_old = r 
+						rfact = np.random.uniform(0.1, 4.)
+						dx /= (np.sqrt(r/rfact))
+						dy /= (np.sqrt(r/rfact))
+						r = np.hypot(dx, dy)
+						message = 'Got a radius larger than 6 small px: {:1.3f}\tnew r: {:1.3f}'.format(r_old, r)
+						logger.warning(message)
 					
-				bin_caracteristics.append([1, r, con, dx, dy])
+					if r < self.crit_angsep/(0.1/(12)):
+						r = self.crit_angsep/(0.1/(12))
+					bin_caracteristics.append([1, r, con, dx, dy])
 			else:
 				is_bin = False
 				
