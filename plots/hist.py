@@ -27,8 +27,6 @@ def hist(ax, stars_characteristics, predictions):
 	ybin = nd/nt
 	#xbin = np.concatenate([[all_stars.min()], xbin])
 	#ybin = np.concatenate([[ybin[0]], ybin])
-	for x,y in zip(xbin, ybin):
-		print x,y
 	
 	ax2 = ax.twinx()
 	ax2.set_ylabel(r'$\mathrm{Completeness}$')

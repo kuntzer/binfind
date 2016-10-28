@@ -16,12 +16,12 @@ class Observations():
 		self.r2_max_error = r2_max_error
 		
 		psf_positions = np.loadtxt(fname_fiducial)
-		x_psf = psf_positions[:,0]
-		y_psf = psf_positions[:,1]
-		self.min_x_psf = np.amin(x_psf)
-		self.min_y_psf = np.amin(y_psf)
-		self.max_x_psf = np.amax(x_psf)
-		self.max_y_psf = np.amax(y_psf)
+		self.x_psf = psf_positions[:,0]
+		self.y_psf = psf_positions[:,1]
+		self.min_x_psf = np.amin(self.x_psf)
+		self.min_y_psf = np.amin(self.y_psf)
+		self.max_x_psf = np.amax(self.x_psf)
+		self.max_y_psf = np.amax(self.y_psf)
 		
 		self.configurations, self.fields_e1, self.fields_e2, self.fields_sigma = utils.readpickle(fname_interpolation)
 		# Preparing for the matching of the indexes
@@ -38,13 +38,14 @@ class Observations():
 		
 		#self.meane = []
 		self.meanr2 = 0
-		for x, y in zip(x_psf, y_psf):
+		for x, y in zip(self.x_psf, self.y_psf):
 			self.meanr2 += self.fields_sigma[self.id_null](x, y)
 			#e1_ = self.fields_e1[self.id_null](x, y)
 			#e2_ = self.fields_e2[self.id_null](x, y)
 			#self.meane.append(np.hypot(e1_, e2_))
-		self.meanr2 /= len(x_psf)
-		self.meane = 0.08
+		self.meanr2 /= len(self.x_psf)
+		#print np.amin(self.meane), np.amax(self.meane)
+		self.meane = 0.1
 	
 	def observe(self, catalog, n_exposures, delta_inbetween_frame):
 		
@@ -52,6 +53,7 @@ class Observations():
 		observed_stars = []	
 		count_doubles = 0
 		# Now, for each star, get the position of the binary
+		obs_errors = []
 		for this_star in catalog:
 			
 			con = this_star[2]
@@ -82,14 +84,12 @@ class Observations():
 					sigma_star = 0.
 					for ii, idcon in enumerate(idcons):
 						idcon = np.where(self.configurations[:,0] == self.contrasts[idcon])[0]
-						dist, ids = self.dxdytree.query([dx, dy], k=4)
-						
+						dist, ids = self.dxdytree.query([dx, dy], k=3)
 						we = 1./dist
-
 						e1_star += np.average([fe1(x_star, y_star) for fe1 in self.fields_e1[idcon][ids]], weights=we) * wcon[ii]
 						e2_star += np.average([fe2(x_star, y_star) for fe2 in self.fields_e2[idcon][ids]], weights=we) * wcon[ii]
 						sigma_star += np.average([sig(x_star, y_star) for sig in self.fields_sigma[idcon][ids]], weights=we) * wcon[ii]
-					
+						#print e1_star; exit()
 					e1_star /= np.sum(wcon)
 					e2_star /= np.sum(wcon)
 					sigma_star /= np.sum(wcon)
@@ -100,9 +100,24 @@ class Observations():
 					sigma_star = self.fields_sigma[self.id_null](x_star, y_star)
 					
 				# Adding some noise in the measure of e1, e2
-				e1_star += np.random.normal(scale=self.ei_max_error) * self.meane
-				e2_star += np.random.normal(scale=self.ei_max_error) * self.meane
-				sigma_star += np.random.normal(scale=self.r2_max_error) * self.meanr2
+				#if this_star[0] == 1 :print self.fields_e2[self.id_null](x_star, y_star), e2_star, 
+				"""if this_star[0] == 1 :
+					#print dx, dy, e1_star, e2_star, np.hypot(e1_star, e2_star), sigma_star * 12. * 4.
+					t = self.fields_e2[self.id_null](x_star, y_star)
+					te = np.hypot(self.fields_e2[self.id_null](x_star, y_star), self.fields_e1[self.id_null](x_star, y_star))
+					o = e2_star
+					oe = np.hypot(e2_star, e1_star)
+					obs_errors.append(oe-te)
+					print te, oe, (oe-te)/te
+					#print "%1.2f \t %1.4f %+1.1e\t%1.4f %1.4f %+1.1e" % (this_star[1] / .12,t,(o-t)/t, te,oe,(oe-te)/te),
+				"""
+				e1_star += np.random.normal(scale=self.ei_max_error * self.meane)
+				e2_star += np.random.normal(scale=self.ei_max_error * self.meane)
+				"""if this_star[0] == 1 :
+					oe = np.hypot(e2_star, e1_star)
+					#print "\t%1.4f %+1.1e" % (oe,(oe-te)/te)
+				#if this_star[0] == 1:print e2_star"""
+				sigma_star += np.random.normal(scale=self.r2_max_error * self.meanr2)
 					
 				# Adding to the catalogue
 				obs_ss.append([x_star, y_star, e1_star, e2_star, sigma_star])
@@ -112,7 +127,7 @@ class Observations():
 			observed_stars.append(obs_ss)	
 		logger.info("Observed {} stars, {:1.1f}% doubles".format(len(observed_stars), count_doubles/len(observed_stars)*100))
 		self.observed_stars = np.asarray(observed_stars)
-		
+
 	def substract_fields(self, eps=0.):
 		obs_x = self.observed_stars[:,:,0].flatten()
 		obs_y = self.observed_stars[:,:,1].flatten()
