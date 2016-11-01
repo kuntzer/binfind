@@ -2,12 +2,14 @@
 def errorbar(ax, y, yerr, barlabels, convertlabels=True, **kwargs):
 	sizedata = len(barlabels)
 	
-	mykwargs = {"alpha":1., "lw":1.5, "color":'goldenrod', "ecolor":'k', 'error_kw':{'lw':1.5}}
+	mykwargs = {"alpha":1., "lw":1.5, "color":'goldenrod', 
+			"ecolor":'k', 'error_kw':{'lw':1.5}, "align":"center"}
 	# We overwrite these mykwargs with any user-specified kwargs:
 	mykwargs.update(kwargs)
+	
+	ax.yaxis.grid(True)
 		
-	ax.bar(range(sizedata), y,
-       yerr=yerr, align="center", **mykwargs)
+	ax.bar(range(sizedata), y, yerr=yerr, **mykwargs)
 
 	ax.set_xticks(range(sizedata))
 	if convertlabels:
@@ -16,3 +18,4 @@ def errorbar(ax, y, yerr, barlabels, convertlabels=True, **kwargs):
 	
 	ax.set_xlim([-1, sizedata])
 	ax.set_ylabel(r"$\mathrm{Feature\ importance}$")
+	
