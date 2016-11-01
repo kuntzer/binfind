@@ -2,6 +2,7 @@
 http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
 """
 
+import numpy as np
 from sklearn import ensemble
 
 from .. import method
@@ -19,3 +20,10 @@ class RandomForestClassifier(method.Method):
 		
 	def predict(self, features):
 		return self.classifier.predict_proba(features)[:,1]
+
+	def get_feature_importance(self):
+		importances = self.classifier.feature_importances_
+		std = np.std([tree.feature_importances_ for tree in self.classifier.estimators_],
+		             axis=0)
+		indices = np.argsort(importances)[::-1]
+		return indices, importances[indices], std[indices]

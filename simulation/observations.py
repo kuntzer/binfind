@@ -53,7 +53,6 @@ class Observations():
 		observed_stars = []	
 		count_doubles = 0
 		# Now, for each star, get the position of the binary
-		obs_errors = []
 		for this_star in catalog:
 			
 			con = this_star[2]
@@ -128,7 +127,7 @@ class Observations():
 		logger.info("Observed {} stars, {:1.1f}% doubles".format(len(observed_stars), count_doubles/len(observed_stars)*100))
 		self.observed_stars = np.asarray(observed_stars)
 
-	def substract_fields(self, eps=0.):
+	def substract_fields(self, eps=0., error_e=2e-4, error_r2=1e-3):
 		obs_x = self.observed_stars[:,:,0].flatten()
 		obs_y = self.observed_stars[:,:,1].flatten()
 		
@@ -136,6 +135,10 @@ class Observations():
 		fiducial_e1 = self.fields_e1[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
 		fiducial_e2 = self.fields_e2[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
 		fiducial_sigma = self.fields_sigma[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
+		
+		fiducial_e1 += np.random.normal(scale=error_e * self.meane, size=[n_stars_obs, self.n_exposures])
+		fiducial_e2 += np.random.normal(scale=error_e * self.meane, size=[n_stars_obs, self.n_exposures])
+		fiducial_sigma += np.random.normal(scale=error_r2 * self.meane, size=[n_stars_obs, self.n_exposures])
 		
 		pos = [obs_x, obs_y]
 		dev_e1 = (self.observed_stars[:,:,2] - fiducial_e1) / (fiducial_e1 + eps)
