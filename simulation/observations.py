@@ -1,9 +1,12 @@
 from __future__ import division
 
-from scipy.spatial import cKDTree
 import numpy as np
+import scipy.interpolate as interp
+from scipy.spatial import cKDTree
+import sklearn.metrics as metrics
 
 from .. import utils
+from .. import diagnostics
 
 import logging
 logger = logging.getLogger(__name__)
@@ -148,4 +151,99 @@ class Observations():
 		features = np.array([dev_e1.T, dev_e2.T, dev_r2.T]).reshape([3*self.n_exposures, n_stars_obs]).T
 		
 		return pos, features
+	
+	def reconstruct_fields(self, classifier, n_iter_reconstr, n_neighbours, eps, truth=None):
+		n_stars = self.observed_stars.shape[0]
+		ids_all = range(n_stars)
+		outliers_ids = None
 		
+		observed_stars = self.observed_stars
+		
+		for kk in range(n_iter_reconstr):
+			logger.info("PSF reconstruction, iteration {:d}/{:d}".format(kk+1, n_iter_reconstr))
+			if 	np.size(outliers_ids) >= n_stars - n_neighbours:
+				continue
+			
+			de1 = []
+			de2 = []
+			dsigma = []
+			
+			for ii in range(n_stars):
+				if outliers_ids is None:
+					ids_singles = ids_all
+					ids_single = np.delete(ids_singles, [ii])
+					
+				else:
+					# Remove outliers from the list
+					ids_single = np.delete(ids_all, np.concatenate([outliers_ids, [ii]]))
+	
+				obs_x = (observed_stars[ids_single,0,0].flatten())
+				obs_y = (observed_stars[ids_single,0,1].flatten())
+				
+				xy = np.array([obs_x, obs_y]).T
+				
+				ie1 = []
+				ie2 = []
+				isigma = []
+				
+				for iobs in range(self.n_exposures):
+					ie1.append(interp.NearestNDInterpolator(xy, observed_stars[ids_single,iobs,2]) )
+					ie2.append(interp.NearestNDInterpolator(xy, observed_stars[ids_single,iobs,3]) )
+					isigma.append(interp.NearestNDInterpolator(xy, observed_stars[ids_single,iobs,4]) )
+				
+				tree = cKDTree(zip(obs_x, obs_y))
+				d, inds = tree.query(zip([observed_stars[ii,0,0]], [observed_stars[ii,0,1]]), k = n_neighbours)
+				inds = inds[d > 0]
+				d = d[d > 0]
+				weights = 1. / (d*2)
+		
+				obs_e1 = np.median(observed_stars[inds,:,2], axis=1)
+				obs_e2 = np.median(observed_stars[inds,:,3], axis=1)
+				obs_r2 = np.median(observed_stars[inds,:,4], axis=1)
+				
+				try:	
+					dinterp_e1 = np.average(obs_e1, weights=weights) 
+				except :
+					print xy.shape
+					print weights	
+					print d
+					print inds
+					raise
+									
+				dinterp_e2 = np.average(obs_e2, weights=weights)
+				dinterp_r2 = np.average(obs_r2, weights=weights)
+				
+	
+				ae1 = []
+				ae2 = []
+				asigma = []
+				for iobs in range(self.n_exposures):
+					#print observed_stars[ii,iobs,2] - ie1[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]),
+					#print ie1[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1])
+					ae1.append(ie1[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]))
+					ae2.append(ie2[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]))
+					asigma.append(isigma[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]))
+				
+				dinterp_e1 = np.median(np.asarray(ae1))
+				dinterp_e2 = np.median(np.asarray(ae2))
+				dinterp_r2 = np.median(np.asarray(asigma))
+				
+				de1.append((observed_stars[ii,:,2] - dinterp_e1) / (dinterp_e1 + eps))
+				de2.append((observed_stars[ii,:,3] - dinterp_e2) / (dinterp_e2 + eps))
+				dsigma.append((observed_stars[ii,:,4] - dinterp_r2) / (dinterp_r2 + eps))
+		
+			de1 = np.array(de1)
+			de2 = np.array(de2)
+			dsigma = np.array(dsigma)
+			
+			features = np.concatenate([de1, de2, dsigma], axis=1)
+
+			preds = classifier.predict(features)
+			outliers_ids = np.where(preds == 1)[0]
+			
+			if truth is not None :
+				print 'f1', metrics.f1_score(truth, preds, average='binary')
+				tpr, fpr = diagnostics.get_tpr_fpr(truth, preds)
+				print "FPR =", fpr, "TPR =", tpr
+				
+			TODO: Compute ROC, return the stats

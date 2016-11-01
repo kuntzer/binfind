@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class Method:
 	
 	def __init__(self):
-		pass
+		self.threshold = None
 	
 	def get_name(self):
 		return self.__class__.__name__
@@ -53,3 +53,10 @@ class Method:
 		if not warn is None:
 			logger.warn(warn)
 
+	def set_threshold(self, thr):
+		self.threshold = thr
+		
+	def predict(self, features, **kwargs):
+		proba = self.predict_proba(features, **kwargs)
+		return utils.classify(proba, self.threshold)
+		

@@ -18,7 +18,7 @@ class RandomForestClassifier(method.Method):
 	def train(self, truth, features, *args, **params):
 		self.classifier.fit(features, truth, *args, **params)
 		
-	def predict(self, features):
+	def predict_proba(self, features):
 		return self.classifier.predict_proba(features)[:,1]
 
 	def get_feature_importance(self):

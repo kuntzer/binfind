@@ -25,12 +25,13 @@ class ACF(method.Method):
 	def __str__(self):
 		return "Auto-Correlation Analysis"
 		
-	def predict(self, features, boundaries=None, indiv_channel=False):
+	def predict_proba(self, features, boundaries=None, indiv_channel=False):
 		points = 0
 		indiv_points = {}
 		not_saved_bound = self.boundaries is None
 		if not_saved_bound:
 			self.boundaries = {}
+			
 		for ch in self.channel_ids:
 			acf = self._acf(features[:,self.channel_ids[ch]])
 			sacf = np.sum(acf, axis=1)
@@ -54,7 +55,7 @@ class ACF(method.Method):
 			return points, indiv_points
 		
 		return points
-
+	
 	def _acf(self, data):
 		# TODO: can be optimised?
 		result = [np.correlate(x, x, mode='full')[self.n_data-1:] for x in data]
