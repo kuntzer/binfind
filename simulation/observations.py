@@ -152,7 +152,7 @@ class Observations():
 		
 		return pos, features
 	
-	def reconstruct_fields(self, classifier, n_iter_reconstr, n_neighbours, eps, truth=None):
+	def reconstruct_fields(self, classifier, n_iter_reconstr, n_neighbours, eps, truth=None, return_proba=False):
 		n_stars = self.observed_stars.shape[0]
 		ids_all = range(n_stars)
 		outliers_ids = None
@@ -160,7 +160,7 @@ class Observations():
 		observed_stars = self.observed_stars
 		
 		for kk in range(n_iter_reconstr):
-			logger.info("PSF reconstruction, iteration {:d}/{:d}".format(kk+1, n_iter_reconstr))
+			logger.info("PSF reconstruction with {:s}, iteration {:d}/{:d}".format(classifier, kk+1, n_iter_reconstr))
 			if 	np.size(outliers_ids) >= n_stars - n_neighbours:
 				continue
 			
@@ -242,8 +242,13 @@ class Observations():
 			outliers_ids = np.where(preds == 1)[0]
 			
 			if truth is not None :
-				print 'f1', metrics.f1_score(truth, preds, average='binary')
+				f1_ = metrics.f1_score(truth, preds, average='binary')
 				tpr, fpr = diagnostics.get_tpr_fpr(truth, preds)
-				print "FPR =", fpr, "TPR =", tpr
-				
-			TODO: Compute ROC, return the stats
+				msg = "F1={:1.3f}, FPR={:2.1f}%, TPR={:2.1f}%".format(f1_, fpr*100., tpr*100.)
+				logger.info(msg)
+		
+		proba = classifier.predict_proba(features)	
+		if return_proba:
+			return preds, proba
+		else:
+			return preds

@@ -5,7 +5,7 @@ from matplotlib.collections import LineCollection
 from .. import diagnostics
 import figures
 
-def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, **kwargs):
+def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, id_fpr=2, id_tpr=1, **kwargs):
 	"""
 	Makes a ROC plot for one or several classifier on an existing axis. 
 	
@@ -38,7 +38,7 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 
 	for p, c, l, metric in zip(params, colors, labels, metrics):
 		
-		tpr_, fpr_, indx = diagnostics.get_unique_tpr_fpr(p, return_indx=True)
+		tpr_, fpr_, indx = diagnostics.get_unique_tpr_fpr(p, id_fpr, id_tpr, return_indx=True)
 		auc = diagnostics.auc(p)
 		
 		if l is None:

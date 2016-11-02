@@ -13,7 +13,7 @@ class RandomForestClassifier(method.Method):
 		self.classifier = ensemble.RandomForestClassifier(*args, **params)		
 		
 	def __str__(self):
-		return "RandomForestClassifier from scikit-learn.org"
+		return "RandomForest Classifier"
 		
 	def train(self, truth, features, *args, **params):
 		self.classifier.fit(features, truth, *args, **params)
@@ -27,3 +27,6 @@ class RandomForestClassifier(method.Method):
 		             axis=0)
 		indices = np.argsort(importances)[::-1]
 		return indices, importances[indices], std[indices]
+	
+	def predict(self, features):
+		return self.classifier.predict(features)

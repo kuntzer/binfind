@@ -16,15 +16,19 @@ def test_thresholds(truth, proba, thresholds):
 	for thr in thresholds:
 		predictions = utils.classify(proba, thr)
 		
-		tpr, fpr = get_tpr_fpr(truth, predictions)
-		f1 = metrics.f1_score(truth, predictions, average='binary')
-		recall = metrics.recall_score(truth, predictions, average='binary')
-		precision = metrics.precision_score(truth, predictions, average='binary')
-		accuracy = metrics.accuracy_score(truth, predictions)
-		
+		tpr, fpr, f1, recall, precision, accuracy = get_metrics(truth, predictions)
 		results.append([thr, tpr, fpr, f1, recall, precision, accuracy])
 	
 	return np.array(results)
+
+def get_metrics(truth, predictions):
+	tpr, fpr = get_tpr_fpr(truth, predictions)
+	f1 = metrics.f1_score(truth, predictions, average='binary')
+	recall = metrics.recall_score(truth, predictions, average='binary')
+	precision = metrics.precision_score(truth, predictions, average='binary')
+	accuracy = metrics.accuracy_score(truth, predictions)
+	
+	return [tpr, fpr, f1, recall, precision, accuracy]
 
 def get_tpr_fpr(truth, pred):
 	"""
