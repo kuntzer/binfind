@@ -50,7 +50,7 @@ class Observations():
 		#print np.amin(self.meane), np.amax(self.meane)
 		self.meane = 0.1
 	
-	def observe(self, catalog, n_exposures, delta_inbetween_frame):
+	def observe(self, catalog, n_exposures):
 		
 		self.n_exposures = n_exposures
 		observed_stars = []	
@@ -123,9 +123,8 @@ class Observations():
 					
 				# Adding to the catalogue
 				obs_ss.append([x_star, y_star, e1_star, e2_star, sigma_star])
-				# And finally, dithering
-				x_star += (float(delta_inbetween_frame[0]) * 0.1 / 360.)
-				y_star += (float(delta_inbetween_frame[1]) * 0.1 / 360.)
+				#x_star += (float(delta_inbetween_frame[0]) * 0.1 / 360.)
+				#y_star += (float(delta_inbetween_frame[1]) * 0.1 / 360.)
 			observed_stars.append(obs_ss)	
 		logger.info("Observed {} stars, {:1.1f}% doubles".format(len(observed_stars), count_doubles/len(observed_stars)*100))
 		self.observed_stars = np.asarray(observed_stars)
