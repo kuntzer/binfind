@@ -28,5 +28,5 @@ class RandomForestClassifier(method.Method):
 		indices = np.argsort(importances)[::-1]
 		return indices, importances[indices], std[indices]
 	
-	#def predict(self, features):
-	#	return self.classifier.predict(features)
+	def predict(self, features):
+		return self.classifier.predict(features)
