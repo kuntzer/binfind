@@ -200,13 +200,11 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 		
 		# RF
 		if crit_angsep > .01:
-			eps_rf = 0.06
+			eps_rf = 0.07
 		elif crit_angsep > .005:
-			eps_rf = 0.05
-		elif crit_angsep > .003:
-			eps_rf = 0.03
+			eps_rf = 0.06
 		else:
-			eps_rf = 0.02 
+			eps_rf = 0.03
 		rf_preds, proba_rf = euclid.reconstruct_fields(rf_class, recovery_n_inter, recovery_n_neighbour, 
 										eps=eps_rf, truth=stars_to_observe[:,0], return_proba=True)
 		rf_roc_params = binfind.diagnostics.test_thresholds(stars_to_observe[:,0], proba_rf, thresholds)
