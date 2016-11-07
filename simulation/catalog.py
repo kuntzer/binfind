@@ -95,11 +95,13 @@ class Catalog():
 			sep = cat_star[4]
 			con = cat_star[3]
 			
+			#if test_angsep(sep, self.crit_angsep) and test_contrast(con, self.crit_contrast):
 			if test_angsep(sep, self.crit_angsep) and test_contrast(con, self.crit_contrast):
 				# Convert from arcsec to small px (1/12 Euclid px)
 				# TODO: Bad, it's hard-coded!!!!
 				dpx = (0.1/(12))
 				r = sep / dpx
+				
 		
 				phi = np.random.uniform(0.,2.*np.pi)
 				dx = r*np.cos(phi)
@@ -114,7 +116,10 @@ class Catalog():
 							
 				r = np.hypot(dx, dy)
 								
-				if test_angsep(r * dpx, self.crit_angsep):
+				#if test_angsep(r * dpx, self.crit_angsep):
+				if not test_angsep(r * dpx, self.crit_angsep):
+					is_bin = False
+				else:
 					is_bin = True
 					# If we have a separation larger than 0.5 Euclid pixel, it's outside of what we computed,
 					# let's shout an error (but do not raise it) and clip the rslt
@@ -127,11 +132,14 @@ class Catalog():
 						message = 'Got a radius larger than 6 small px: {:1.3f}\tnew r: {:1.3f}'.format(r_old, r)
 						logger.warning(message)
 					
-					if test_angsep(r * dpx, self.crit_angsep):
+					if not test_angsep(r * dpx, self.crit_angsep):
 						r = self.crit_angsep / dpx
+						theta = np.random.uniform(0.,2.*np.pi)
+						dx = r * np.cos(theta)
+						dy = r * np.sin(theta)
 					bin_caracteristics.append([1, r, con, dx, dy])
-				else:
-					is_bin = False
+				#else:
+				#	is_bin = False
 			else:
 				is_bin = False
 				
