@@ -116,7 +116,6 @@ class Catalog():
 							
 				r = np.hypot(dx, dy)
 								
-				#if test_angsep(r * dpx, self.crit_angsep):
 				if not test_angsep(r * dpx, self.crit_angsep):
 					is_bin = False
 				else:
@@ -138,8 +137,6 @@ class Catalog():
 						dx = r * np.cos(theta)
 						dy = r * np.sin(theta)
 					bin_caracteristics.append([1, r, con, dx, dy])
-				#else:
-				#	is_bin = False
 			else:
 				is_bin = False
 				
