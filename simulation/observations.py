@@ -151,7 +151,7 @@ class Observations():
 		
 		return pos, features
 	
-	def reconstruct_fields(self, classifier, n_iter_reconstr, n_neighbours, eps, truth=None, return_proba=False):
+	def reconstruct_fields(self, classifier, n_iter_reconstr, n_neighbours, eps, truth=None, return_proba=False, **kwargs):
 		n_stars = self.observed_stars.shape[0]
 		ids_all = range(n_stars)
 		outliers_ids = None
@@ -246,7 +246,7 @@ class Observations():
 				msg = "F1={:1.3f}, FPR={:2.1f}%, TPR={:2.1f}%".format(f1_, fpr*100., tpr*100.)
 				logger.info(msg)
 		
-		proba = classifier.predict_proba(features)	
+		proba = classifier.predict_proba(features, **kwargs)	
 		if return_proba:
 			return preds, proba
 		else:

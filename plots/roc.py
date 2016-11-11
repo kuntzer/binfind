@@ -35,6 +35,11 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 		metrics = len(params) * [None]
 
 	cmap = plt.get_cmap('plasma')
+	
+	# Round up to the nearest 0.1
+	metrics_vs = np.array(metrics)
+	metric_vmin = np.floor(np.amin(metrics_vs) * 10) / 10
+	metric_vmax = np.ceil(np.amax(metrics_vs) * 10) / 10
 
 	for p, c, l, metric in zip(params, colors, labels, metrics):
 		
@@ -55,16 +60,12 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 		if metric is not None:
 			m = np.concatenate([[metric[-1]], metric[indx], [metric[0]]])
 			
-			# Round up to the nearest 0.1
-			vmin = np.floor(np.amin(m) * 10) / 10
-			vmax = np.ceil(np.amax(m) * 10) / 10
-
-			cax = ax.scatter(fpr_, tpr_, edgecolor="None", c=m, cmap=cmap, s=5, vmin=vmin, vmax=vmax)
+			cax = ax.scatter(fpr_, tpr_, edgecolor="None", c=m, cmap=cmap, s=5, vmin=metric_vmin, vmax=metric_vmax)
 
 			points = np.array([fpr_, tpr_]).T.reshape(-1, 1, 2)
 			segments = np.concatenate([points[:-1], points[1:]], axis=1)
 			
-			lc = LineCollection(segments, cmap=cmap, alpha=0.8, norm=plt.Normalize(vmin, vmax))
+			lc = LineCollection(segments, cmap=cmap, alpha=0.8, norm=plt.Normalize(metric_vmin, metric_vmax))
 			lc.set_array(m)
 			lc.set_linewidth(6)
 			plt.gca().add_collection(lc)
