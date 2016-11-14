@@ -59,3 +59,20 @@ def get_id_catalogs(crit_angsep, crit_contrast):
 		fids = [1, 2, 3, 4, 5]
 		
 	return fids
+
+def get_id_catalogs_inverted(crit_angsep, crit_contrast):
+	if crit_contrast <= 0.7:
+		if crit_angsep < 0.005: 
+			fids = [1, 2, 3, 4, 5]
+		elif crit_angsep < 0.007: 
+			fids = [1, 2, 3, 4]
+		elif crit_angsep < 0.01: 
+			fids = [1, 2, 3]
+		elif crit_angsep < 0.012: 
+			fids = [1, 2]
+		else: 
+			fids = [1]
+	else:
+		fids = [1, 2, 3, 4, 5]
+		
+	return fids

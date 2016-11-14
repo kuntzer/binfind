@@ -13,7 +13,7 @@ ch_id = {"e1": [1,2,3,4], "e2": [4,5,6,7], "r2": [8,9,10,11]}
 ch_w = {"e1": 0.7, "e2": 0.55, "r2": 0.0}
 n_exposures = 4
 acf_class = binfind.classifier.ACF(ch_id, ch_w, n_exposures)
-rf_class = binfind.classifier.RandomForestClassifier(20)
+rf_class = binfind.classifier.RandomForestClassifier(50)
 binfind.plots.figures.set_fancy()
 
 results_train = {'acf':[], 'rf':[]}
@@ -187,8 +187,10 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 			m_min, m_max, n_stars, bin_fraction)
 		
 		# ACF
-		if crit_angsep >= .01:
-			eps_acf = 0.01
+		if crit_angsep > .013:
+			eps_acf = 0.036
+		elif crit_angsep >= .01:
+			eps_acf = 0.03
 		else:
 			eps_acf = 0.015
 		_, proba_acf = euclid.reconstruct_fields(acf_class, recovery_n_inter, recovery_n_neighbour, eps=eps_acf, truth=stars_to_observe[:,0], return_proba=True)
@@ -257,7 +259,7 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 	#	print line[:3]
 	
 	binfind.plots.roc(ax, [acf_rocs, rf_rocs], 
-		metrics=[acf_rocs[:,4], rf_rocs[:,4]], 
+		metrics=[acf_rocs[:,3], rf_rocs[:,3]], 
 		metrics_label=r"$F_1\ \mathrm{score}$", labels=labels)
 	figfname = os.path.join(outdir, "figures", "roc_sep{:.0f}_con{:.0f}".format(crit_angsep*1e3, crit_contrast*10))
 	binfind.plots.figures.savefig(figfname, fig, fancy=True, pdf_transparence=True)

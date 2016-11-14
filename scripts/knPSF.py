@@ -228,7 +228,7 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 	### Plotting
 	fig = plt.figure()
 	ax = plt.subplot()
-		
+	
 	binfind.plots.hist(ax, star_char, proba_acf >= acf_class.threshold)
 	figfname = os.path.join(outdir, "figures", "complet_acf_sep{:.0f}_con{:.0f}".format(crit_angsep*1e3, crit_contrast*10))
 	binfind.plots.figures.savefig(figfname, fig, fancy=True, pdf_transparence=True)
@@ -244,7 +244,7 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 		
 	labels = ['ACF', 'N(e_1)', 'N(e_2)', 'N(R^2)', 'RF']
 	binfind.plots.roc(ax, [acf_roc_params, e1_roc_params, e2_roc_params, r2_roc_params, rf_roc_params], 
-		metrics=[acf_roc_params[:,4], e1_roc_params[:,4], e2_roc_params[:,4], r2_roc_params[:,4], rf_roc_params[:,4]], 
+		metrics=[acf_roc_params[:,3], e1_roc_params[:,3], e2_roc_params[:,3], r2_roc_params[:,3], rf_roc_params[:,3]], 
 		metrics_label=r"$F_1\ \mathrm{score}$", labels=labels)
 	figfname = os.path.join(outdir, "figures", "roc_sep{:.0f}_con{:.0f}".format(crit_angsep*1e3, crit_contrast*10))
 	binfind.plots.figures.savefig(figfname, fig, fancy=True, pdf_transparence=True)

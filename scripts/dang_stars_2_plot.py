@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import bf_utils as bf
+import itertools
 import os 
 import figures
 
@@ -20,16 +20,41 @@ else:
 e_req = 0.01#2e-4
 r_req = 0.05#1e-3
 
-# Start from zero
-computes = False
+n_angsep = 3
+n_con = 2
+# Minimum separation of the stars to be qualified as binaries
+crits_angsep = np.linspace(1, 15, n_angsep)
+# Max contrast to be qualified as binaries
+crits_contrast = np.linspace(0.1, 1.5, n_con)#np.linspace(0.1, 0.015, 7)
 
 save = True
+outdir = 'data/binfind_percent_meas/dang_stars_simple'
 
-outdir = 'data/binfind_percent_meas/dang_stars'
-crits_angsep, crits_contrast, e1_deform, e2_deform, r2_deform = bf.readpickle(os.path.join(outdir, 'dang_stars.pkl'))
+e1_deforms = []
+e2_deforms = []
+r2_deforms = []
+
+criteria = list(itertools.product(*[crits_angsep, crits_contrast]))
+for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
+	
+	ca, cc, e1_deform, e2_deform, r2_deform = bf.readpickle(os.path.join(outdir, 'dang_stars_{:d}_{:1.1f}.pkl'.format(int(crit_angsep), crit_contrast)))
+	e1_deforms.append(np.percentile(e1_deform, [95])[0])
+	e2_deforms.append(np.percentile(e1_deform, [95])[0])
+	r2_deforms.append(np.percentile(e1_deform, [95])[0])
+	print iix, crit_angsep, crit_contrast, e1_deforms[-1], e2_deforms[-1], r2_deforms[-1]
+	#
+
+e1_deforms = np.asarray(e1_deforms)
+e2_deforms = np.asarray(e2_deforms)
+r2_deforms = np.asarray(r2_deforms)
+
+e1_deform = e1_deforms.reshape([n_angsep, n_con])
+e2_deform = e2_deforms.reshape([n_angsep, n_con])
+r2_deform = r2_deforms.reshape([n_angsep, n_con])
+
 
 # Let's start by constructing the meshgrid and then the data variable
-x = crits_angsep * 1e3
+x = crits_angsep 
 y = crits_contrast
 
 dx = (x[1]-x[0])/2.
@@ -43,6 +68,7 @@ fig1 = plt.figure()
 # Round up to the nearest 0.05
 #vmin = np.round(Zd.min() * 20) / 20
 #vmax = np.round(Zd.max() * 20) / 20
+
 CS = plt.pcolormesh(X, Y, e1_deform.T * 1e4, cmap=plt.get_cmap("inferno_r"))#, vmin=vmin, vmax=vmax)
 #plt.axis([X.min(),X.max(),Y.min(),Y.max()])
 #plt.xticks(x[:-1][::2])
