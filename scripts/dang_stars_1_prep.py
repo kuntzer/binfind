@@ -69,13 +69,11 @@ max_y_psf = np.amax(y_psf)
 
 euclid = binfind.simulation.Observations(ei_max_error, r2_max_error, fname_interpolation, fname_fiducial)
 
-dcon = crits_contrast[1] - crits_contrast[0]
-dan = crits_angsep[1] - crits_angsep[0]
-def test_angsep(sep, cangsep, dan=dan):
+def test_angsep(sep, cangsep):
 	condition = sep <= cangsep 
 	return condition
 
-def test_contr(con, ccontrast, dcon=dcon):
+def test_contr(con, ccontrast):
 	return con >= ccontrast 
 
 e1_deform = []

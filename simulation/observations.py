@@ -129,11 +129,13 @@ class Observations():
 		logger.info("Observed {} stars, {:1.1f}% doubles".format(len(observed_stars), count_doubles/len(observed_stars)*100))
 		self.observed_stars = np.asarray(observed_stars)
 
-	def substract_fields(self, eps=0., error_e=2e-4, error_r2=1e-3):
+	def substract_fields(self, eps=0., error_e=2e-4, error_r2=1e-3, relerr=True):
 		obs_x = self.observed_stars[:,:,0].flatten()
 		obs_y = self.observed_stars[:,:,1].flatten()
-		
+
 		n_stars_obs = self.observed_stars.shape[0]
+		obs_xy = (np.array([obs_x, obs_y]).T).reshape([n_stars_obs, self.n_exposures * 2])
+		
 		fiducial_e1 = self.fields_e1[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
 		fiducial_e2 = self.fields_e2[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
 		fiducial_sigma = self.fields_sigma[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
@@ -142,21 +144,32 @@ class Observations():
 		fiducial_e2 += np.random.normal(scale=error_e * self.meane, size=[n_stars_obs, self.n_exposures])
 		fiducial_sigma += np.random.normal(scale=error_r2 * self.meane, size=[n_stars_obs, self.n_exposures])
 		
-		pos = [obs_x, obs_y]
-		dev_e1 = (self.observed_stars[:,:,2] - fiducial_e1) / (fiducial_e1 + eps)
-		dev_e2 = (self.observed_stars[:,:,3] - fiducial_e2) / (fiducial_e2 + eps)
-		dev_r2 = (self.observed_stars[:,:,4] - fiducial_sigma) / (fiducial_sigma + eps)	
+		
+		dev_e1 = (self.observed_stars[:,:,2] - fiducial_e1)
+		dev_e2 = (self.observed_stars[:,:,3] - fiducial_e2)
+		dev_r2 = (self.observed_stars[:,:,4] - fiducial_sigma)
+		
+		if relerr:
+			dev_e1 /= (fiducial_e1 + eps)
+			dev_e2 /= (fiducial_e2 + eps)
+			dev_r2 /= (fiducial_sigma + eps)
+		
+		obs_xy = np.array([fiducial_e1[:,0], fiducial_e2[:,0], fiducial_sigma[:,0]]).T
 		
 		features = np.array([dev_e1.T, dev_e2.T, dev_r2.T]).reshape([3*self.n_exposures, n_stars_obs]).T
 		
-		return pos, features
+		return obs_xy, features
 	
-	def reconstruct_fields(self, classifier, n_iter_reconstr, n_neighbours, eps, truth=None, return_proba=False, **kwargs):
+	def reconstruct_fields(self, classifier, n_iter_reconstr, n_neighbours, eps, truth=None, return_proba=False, relerr=True, **kwargs):
 		n_stars = self.observed_stars.shape[0]
 		ids_all = range(n_stars)
 		outliers_ids = None
 		
 		observed_stars = self.observed_stars
+		obs_x = self.observed_stars[:,:,0].flatten()
+		obs_y = self.observed_stars[:,:,1].flatten()
+
+		obs_xy = (np.array([obs_x, obs_y]).T).reshape([self.observed_stars.shape[0], self.n_exposures * 2])[:,:2]
 		
 		for kk in range(n_iter_reconstr):
 			logger.info("PSF reconstruction with {:s}, iteration {:d}/{:d}".format(classifier, kk+1, n_iter_reconstr))
@@ -227,15 +240,27 @@ class Observations():
 				dinterp_e2 = np.median(np.asarray(ae2))
 				dinterp_r2 = np.median(np.asarray(asigma))
 				
-				de1.append((observed_stars[ii,:,2] - dinterp_e1) / (dinterp_e1 + eps))
-				de2.append((observed_stars[ii,:,3] - dinterp_e2) / (dinterp_e2 + eps))
-				dsigma.append((observed_stars[ii,:,4] - dinterp_r2) / (dinterp_r2 + eps))
+				dde1 = observed_stars[ii,:,2] - dinterp_e1
+				dde2 = observed_stars[ii,:,3] - dinterp_e2
+				ddr2 = observed_stars[ii,:,4] - dinterp_r2
+				
+				if relerr:
+					print 'ccccc'
+					dde1 /= (dinterp_e1 + eps)
+					dde2 /= (dinterp_e2 + eps)
+					ddr2 /= (dinterp_r2 + eps)
+					
+				de1.append(dde1)
+				de2.append(dde2)
+				dsigma.append(ddr2)
 		
 			de1 = np.array(de1)
 			de2 = np.array(de2)
 			dsigma = np.array(dsigma)
-			
-			features = np.concatenate([de1, de2, dsigma], axis=1)
+			if relerr:
+				features = np.concatenate([de1, de2, dsigma], axis=1)
+			else:
+				features = np.concatenate([obs_xy, de1, de2, dsigma], axis=1)
 
 			preds = classifier.predict(features)
 			outliers_ids = np.where(preds == 1)[0]

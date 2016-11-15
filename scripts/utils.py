@@ -3,7 +3,7 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-def get_knPSF_realisation(data, sim_cat, euclid, n_exposures, m_min, m_max, bin_fraction, **kwargs):
+def get_knPSF_realisation(data, sim_cat, euclid, n_exposures, m_min, m_max, bin_fraction, return_pos=False, **kwargs):
 
 	sim_cat.select_stars(data, m_min, m_max)
 	stars_to_observe = sim_cat.draw_catalog()
@@ -20,7 +20,10 @@ def get_knPSF_realisation(data, sim_cat, euclid, n_exposures, m_min, m_max, bin_
 	stars_to_observe = stars_to_observe[selected_stars]
 
 	euclid.observe(stars_to_observe, n_exposures)
-	_, feature = euclid.substract_fields(**kwargs)
+	positions, feature = euclid.substract_fields(**kwargs)
+	
+	if return_pos:
+		return stars_to_observe, feature, positions
 	
 	return stars_to_observe, feature
 
