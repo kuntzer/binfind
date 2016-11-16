@@ -169,7 +169,7 @@ class Observations():
 		obs_x = self.observed_stars[:,:,0].flatten()
 		obs_y = self.observed_stars[:,:,1].flatten()
 
-		obs_xy = (np.array([obs_x, obs_y]).T).reshape([self.observed_stars.shape[0], self.n_exposures * 2])[:,:2]
+		#obs_xy = (np.array([obs_x, obs_y]).T).reshape([self.observed_stars.shape[0], self.n_exposures * 2])[:,:2]
 		
 		for kk in range(n_iter_reconstr):
 			logger.info("PSF reconstruction with {:s}, iteration {:d}/{:d}".format(classifier, kk+1, n_iter_reconstr))
@@ -179,6 +179,8 @@ class Observations():
 			de1 = []
 			de2 = []
 			dsigma = []
+			
+			daf = []
 			
 			for ii in range(n_stars):
 				if outliers_ids is None:
@@ -244,8 +246,9 @@ class Observations():
 				dde2 = observed_stars[ii,:,3] - dinterp_e2
 				ddr2 = observed_stars[ii,:,4] - dinterp_r2
 				
+				daf.append([dinterp_e1, dinterp_e2, dinterp_r2])
+				
 				if relerr:
-					print 'ccccc'
 					dde1 /= (dinterp_e1 + eps)
 					dde2 /= (dinterp_e2 + eps)
 					ddr2 /= (dinterp_r2 + eps)
@@ -257,10 +260,13 @@ class Observations():
 			de1 = np.array(de1)
 			de2 = np.array(de2)
 			dsigma = np.array(dsigma)
+			daf = np.array(daf)
+
 			if relerr:
 				features = np.concatenate([de1, de2, dsigma], axis=1)
 			else:
-				features = np.concatenate([obs_xy, de1, de2, dsigma], axis=1)
+				features = np.concatenate([daf, de1, de2, dsigma], axis=1)
+				features = np.concatenate([daf[:,0].reshape((n_stars,1)), de1], axis=1)
 
 			preds = classifier.predict(features)
 			outliers_ids = np.where(preds == 1)[0]
@@ -276,3 +282,115 @@ class Observations():
 			return preds, proba
 		else:
 			return preds
+		
+	def get_reconstruct_fields(self, n_iter_reconstr, n_neighbours, eps, truth=None, return_proba=False, relerr=True, **kwargs):
+		n_stars = self.observed_stars.shape[0]
+		ids_all = range(n_stars)
+		outliers_ids = None
+		
+		observed_stars = self.observed_stars
+		obs_x = self.observed_stars[:,:,0].flatten()
+		obs_y = self.observed_stars[:,:,1].flatten()
+
+		#obs_xy = (np.array([obs_x, obs_y]).T).reshape([self.observed_stars.shape[0], self.n_exposures * 2])[:,:2]
+		
+		n_iter_reconstr = 1
+		for kk in range(n_iter_reconstr):
+			logger.info("Iteration {:d}/{:d}".format(kk+1, n_iter_reconstr))
+			if 	np.size(outliers_ids) >= n_stars - n_neighbours:
+				continue
+			
+			de1 = []
+			de2 = []
+			dsigma = []
+			
+			daf = []
+			
+			for ii in range(n_stars):
+				if outliers_ids is None:
+					ids_singles = ids_all
+					ids_single = np.delete(ids_singles, [ii])
+					
+				else:
+					# Remove outliers from the list
+					ids_single = np.delete(ids_all, np.concatenate([outliers_ids, [ii]]))
+	
+				obs_x = (observed_stars[ids_single,0,0].flatten())
+				obs_y = (observed_stars[ids_single,0,1].flatten())
+				
+				xy = np.array([obs_x, obs_y]).T
+				
+				ie1 = []
+				ie2 = []
+				isigma = []
+				
+				for iobs in range(self.n_exposures):
+					ie1.append(interp.NearestNDInterpolator(xy, observed_stars[ids_single,iobs,2]) )
+					ie2.append(interp.NearestNDInterpolator(xy, observed_stars[ids_single,iobs,3]) )
+					isigma.append(interp.NearestNDInterpolator(xy, observed_stars[ids_single,iobs,4]) )
+				
+				tree = cKDTree(zip(obs_x, obs_y))
+				d, inds = tree.query(zip([observed_stars[ii,0,0]], [observed_stars[ii,0,1]]), k = n_neighbours)
+				inds = inds[d > 0]
+				d = d[d > 0]
+				weights = 1. / (d*2)
+		
+				obs_e1 = np.median(observed_stars[inds,:,2], axis=1)
+				obs_e2 = np.median(observed_stars[inds,:,3], axis=1)
+				obs_r2 = np.median(observed_stars[inds,:,4], axis=1)
+				
+				try:	
+					dinterp_e1 = np.average(obs_e1, weights=weights) 
+				except :
+					print xy.shape
+					print weights	
+					print d
+					print inds
+					raise
+									
+				dinterp_e2 = np.average(obs_e2, weights=weights)
+				dinterp_r2 = np.average(obs_r2, weights=weights)
+				
+	
+				ae1 = []
+				ae2 = []
+				asigma = []
+				for iobs in range(self.n_exposures):
+					#print observed_stars[ii,iobs,2] - ie1[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]),
+					#print ie1[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1])
+					ae1.append(ie1[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]))
+					ae2.append(ie2[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]))
+					asigma.append(isigma[iobs](observed_stars[ii,0,0], observed_stars[ii,0,1]))
+				
+				dinterp_e1 = np.median(np.asarray(ae1))
+				dinterp_e2 = np.median(np.asarray(ae2))
+				dinterp_r2 = np.median(np.asarray(asigma))
+				
+				dde1 = observed_stars[ii,:,2] - dinterp_e1
+				dde2 = observed_stars[ii,:,3] - dinterp_e2
+				ddr2 = observed_stars[ii,:,4] - dinterp_r2
+				
+				daf.append([dinterp_e1, dinterp_e2, dinterp_r2])
+				
+				if relerr:
+					dde1 /= (dinterp_e1 + eps)
+					dde2 /= (dinterp_e2 + eps)
+					ddr2 /= (dinterp_r2 + eps)
+					
+				de1.append(dde1)
+				de2.append(dde2)
+				dsigma.append(ddr2)
+		
+			de1 = np.array(de1)
+			de2 = np.array(de2)
+			dsigma = np.array(dsigma)
+			daf = np.array(daf)
+
+			if relerr:
+				features = np.concatenate([de1, de2, dsigma], axis=1)
+			else:
+				features = np.concatenate([daf, de1, de2, dsigma], axis=1)
+				features = np.concatenate([daf[:,0].reshape((n_stars,1)), de1], axis=1)
+
+			return features
+		

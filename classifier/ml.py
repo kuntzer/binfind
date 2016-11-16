@@ -166,7 +166,7 @@ class ML(method.Method):
 		logger.info("Done! This training took %s" % (str(endtime - starttime)))
 	
 		
-	def predict_proba(self, catalog):
+	def predict_proba(self, catalog, return_uncer=False):
 		"""
 		Computes the prediction(s) based on the features in the given catalog.
 		Of course it will return a new astropy.table to which the new "predlabels" columns are added,
@@ -185,9 +185,12 @@ class ML(method.Method):
 		
 		preddata = preddata.reshape(preddata.size)
 
-		return preddata, preduncer
+		if return_uncer:
+			return preddata, preduncer
+		else:
+			return preddata
 
-	def predict(self, catalog):
+	def predict(self, catalog, return_uncer=False):
 		"""
 		Computes the prediction(s) based on the features in the given catalog.
 		Of course it will return a new astropy.table to which the new "predlabels" columns are added,
@@ -198,9 +201,12 @@ class ML(method.Method):
 		"""
 
 		# We can run the prediction tool, it doesn't have to worry about any masks:
-		preddata, preduncer = self.predict_proba(catalog)
+		preddata, preduncer = self.predict_proba(catalog, return_uncer=True)
 		
 		preddata = utils.classify(preddata, self.threshold)
 		
-		return preddata, preduncer
+		if return_uncer:
+			return preddata, preduncer
+		else:
+			return preddata
 	
