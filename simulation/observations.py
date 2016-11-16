@@ -134,7 +134,7 @@ class Observations():
 		obs_y = self.observed_stars[:,:,1].flatten()
 
 		n_stars_obs = self.observed_stars.shape[0]
-		obs_xy = (np.array([obs_x, obs_y]).T).reshape([n_stars_obs, self.n_exposures * 2])
+		#obs_xy = (np.array([obs_x, obs_y]).T).reshape([n_stars_obs, self.n_exposures * 2])
 		
 		fiducial_e1 = self.fields_e1[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
 		fiducial_e2 = self.fields_e2[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
