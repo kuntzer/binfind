@@ -156,7 +156,7 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 	rf_roc_params = binfind.diagnostics.test_thresholds(binary_stars, proba, thresholds)
 	
 	idlim_rf = binfind.utils.find_nearest(rf_roc_params[:,2], thr_fpr)
-	thr = acf_roc_params[idlim_rf, 0]
+	thr = rf_roc_params[idlim_rf, 0]
 	rf_class.set_threshold(thr)
 	
 	rf_feat_imp = rf_class.get_feature_importance()
