@@ -2,6 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import itertools
 import os 
+
+import binfind.utils as u
 import figures
 
 white_plot = False

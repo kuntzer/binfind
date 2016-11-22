@@ -10,10 +10,7 @@ import logging
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s(%(funcName)s): %(message)s', level=logging.DEBUG)
 
 n_exposures = 4
-mlparams = binfind.classifier.MLParams(name = "foo", 
-		features = range(15),  labels = range(1))
-toolparams = binfind.classifier.fannwrapper.FANNParams(name = "bar", hidden_nodes = [15,15,15],
-        max_iterations = 2000)
+
 binfind.plots.figures.set_fancy()
 
 
@@ -22,7 +19,7 @@ binfind.plots.figures.set_fancy()
 
 ## Simulation parameters
 # Minimum separation of the stars to be qualified as binaries
-crits_angsep = [0.014,0.015]#np.linspace(0.001, 0.015, 15)
+crits_angsep = np.linspace(0.001, 0.015, 15)
 # Max contrast to be qualified as binaries
 crits_contrast = np.linspace(0.1, 1.5, 15)
 # Number of times to do the whfname_interpolationole analysis 
@@ -93,7 +90,11 @@ euclid = binfind.simulation.Observations(ei_max_error, r2_max_error, fname_inter
 
 for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 	
-	ml_class = binfind.classifier.ML(mlparams, toolparams)
+	mlparams = binfind.classifier.MLParams(name = "{:d}".format(int(crit_angsep * 1e3)), 
+		features = range(15),  labels = range(1))
+	toolparams = binfind.classifier.fannwrapper.FANNParams(name = "{:1.1f}".format(crit_contrast), 
+		hidden_nodes = [15,15,15], max_iterations = 2000)
+	ml_class = binfind.classifier.ML(mlparams, toolparams, workbasedir=os.path.join(outdir, 'ann'))
 	
 	results_train = {'ann':[]}
 	results_test = {'ann':[]}
@@ -241,7 +242,7 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 	print 'TPR:', ann_metr[0]
 	print 'FPR:', ann_metr[1]
 	print 'F1:', ann_metr[2]
-	results_train["ann"].append(np.concatenate([[crit_angsep, crit_contrast], [0.0], ann_metr, [auc_ann]]))
+	results_train["ann"].append(np.concatenate([[crit_angsep, crit_contrast], [0.5], ann_metr, [auc_ann]]))
 
 	###############################################################################################
 	## Validation
@@ -287,7 +288,7 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 		ann_metr = binfind.diagnostics.get_metrics(stars_to_observe[:,0], ann_preds)
 		auc_ann = binfind.diagnostics.auc(ann_roc_params)
 		print 'AUC testing ANN:', auc_ann
-		ann_res.append(np.concatenate([[crit_angsep, crit_contrast], [0.0], ann_metr, [auc_ann]]))
+		ann_res.append(np.concatenate([[crit_angsep, crit_contrast], [ml_class.threshold], ann_metr, [auc_ann]]))
 		
 		if ann_rocs is None:
 			ann_rocs = ann_roc_params

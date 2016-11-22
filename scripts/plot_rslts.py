@@ -128,8 +128,8 @@ for key in results_test:
 	
 	ax2 = plt.subplot(122)
 	# Round up to the nearest 0.1
-	vmin = np.floor(Zd.min() * 10) / 10
-	vmax = np.ceil(Zd.max() * 10) / 10
+	vmin = np.floor(Zd.min() * 20) / 20
+	vmax = np.ceil(Zd.max() * 20) / 20
 	CS = plt.pcolormesh(X, Y, Zd, cmap=plt.get_cmap("viridis"), vmin=vmin, vmax=vmax)
 	plt.axis([X.min(),X.max(),Y.min(),Y.max()])
 	plt.xticks(x[:-1][::2])
@@ -158,8 +158,10 @@ def set_ax(ax_, x, y):
 	ax_.set_yticks(y[:-1][::2])
 
 keys = sorted(results_test.keys())
+
+keys = ['acf', 'rf', 'ann']
 lenk = len(results_test)
-fig4, plax = plt.subplots(nrows=2, ncols=2, figsize=(8,8))
+fig4, plax = plt.subplots(nrows=3, ncols=2, figsize=(8,12))
 plt.subplots_adjust(wspace=0.01)
 plt.subplots_adjust(hspace=0.01)
 plt.subplots_adjust(bottom=0.25)
@@ -171,21 +173,21 @@ box_props = dict(boxstyle="round", fc="w", ec="0.3", alpha=0.3)
 
 axes["F1_max"] = 1
 print axes["AUC_max"]
-axes["AUC_max"] = 0.95
+axes["AUC_max"] = 1
 
 for ii, ax_ in enumerate(plax.flat):
 	
-	keyid = ii / lenk
+	keyid = ii / 2
 	
 	key = keys[keyid]
 	
-	if ii % lenk == 0:
+	if ii % 2 == 0:
 		D = axes["{:s}_F1".format(key)]
 		cmap = plt.get_cmap("plasma")
 		ax_.annotate(r'$\mathrm{%s}$' % key.upper(), xy=(0.1, 0.8), xycoords="axes fraction", bbox=box_props)
 		vmin = axes["F1_min"]
 		vmax = axes["F1_max"]
-	elif ii % lenk == 1:
+	elif ii % 2 == 1:
 		D = axes["{:s}_AUC".format(key)]
 		cmap = plt.get_cmap("viridis")
 		ax_.set_yticklabels([])
@@ -199,9 +201,9 @@ for ii, ax_ in enumerate(plax.flat):
 	
 	im = ax_.pcolormesh(X, Y, D, cmap=cmap, vmin=vmin, vmax=vmax)
 	
-	if ii % lenk == 0:
+	if ii % 2 == 0:
 		f1_CS = im
-	elif ii % lenk == 1:
+	elif ii % 2 == 1:
 		auc_CS = im
 		
 	ax_.set_xticks(x[:-1][::2])
