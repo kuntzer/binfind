@@ -266,7 +266,7 @@ class Observations():
 				features = np.concatenate([de1, de2, dsigma], axis=1)
 			else:
 				features = np.concatenate([daf, de1, de2, dsigma], axis=1)
-				features = np.concatenate([daf[:,0].reshape((n_stars,1)), de1], axis=1)
+				#features = np.concatenate([daf[:,0].reshape((n_stars,1)), de1], axis=1)
 
 			preds = classifier.predict(features)
 			outliers_ids = np.where(preds == 1)[0]
@@ -390,7 +390,7 @@ class Observations():
 				features = np.concatenate([de1, de2, dsigma], axis=1)
 			else:
 				features = np.concatenate([daf, de1, de2, dsigma], axis=1)
-				features = np.concatenate([daf[:,0].reshape((n_stars,1)), de1], axis=1)
+				#features = np.concatenate([daf[:,0].reshape((n_stars,1)), de1], axis=1)
 
 			return features
 		

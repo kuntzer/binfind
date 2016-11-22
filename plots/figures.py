@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib
 
 def get_colors():
-	return ['k', 'orange', 'skyblue', 'seagreen', "#984ea3", "#ff7f00", "#a65628", "#f781bf", "#4daf4a"]
+	return ['k', 'orange', 'skyblue', 'seagreen', "#984ea3", 'r', "#a65628", "#f781bf", "#4daf4a"]
 
 def savefig(fname,fig,fancy=False,pdf_transparence=True):
 	import os
