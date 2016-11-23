@@ -129,16 +129,16 @@ class Observations():
 		logger.info("Observed {} stars, {:1.1f}% doubles".format(len(observed_stars), count_doubles/len(observed_stars)*100))
 		self.observed_stars = np.asarray(observed_stars)
 
-	def substract_fields(self, eps=0., error_e=2e-4, error_r2=1e-3, relerr=True):
+	def substract_fields(self, eps=0., error_e=2e-4, error_r2=1e-3, bias_e=0, bias_r2=0, relerr=True):
 		obs_x = self.observed_stars[:,:,0].flatten()
 		obs_y = self.observed_stars[:,:,1].flatten()
 
 		n_stars_obs = self.observed_stars.shape[0]
 		#obs_xy = (np.array([obs_x, obs_y]).T).reshape([n_stars_obs, self.n_exposures * 2])
 		
-		fiducial_e1 = self.fields_e1[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
-		fiducial_e2 = self.fields_e2[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
-		fiducial_sigma = self.fields_sigma[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures])
+		fiducial_e1 = self.fields_e1[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures]) + bias_e
+		fiducial_e2 = self.fields_e2[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures]) + bias_e
+		fiducial_sigma = self.fields_sigma[self.id_null](obs_x, obs_y).reshape([n_stars_obs, self.n_exposures]) + bias_r2
 		
 		fiducial_e1 += np.random.normal(scale=error_e * self.meane, size=[n_stars_obs, self.n_exposures])
 		fiducial_e2 += np.random.normal(scale=error_e * self.meane, size=[n_stars_obs, self.n_exposures])
