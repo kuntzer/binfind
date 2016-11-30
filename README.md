@@ -20,7 +20,7 @@ Key words. Methods: data analysis – Methods: statistical – (Stars:) binaries
 
 ## Running the code
 
-The scripts that were used to generate the results of the paper are in the `script/` repository. The simulated PSFs are internal to the Euclid Consoritum.
+The scripts that were used to generate the results of the paper are in the `script/` repository. The simulated PSFs are internal to the [Euclid Consoritum](http://www.euclid-ec.org/).
 
 ## Other codes from EPFL / LASTRO
 
