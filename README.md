@@ -4,7 +4,6 @@
 An exquisite Point Spread Function (PSF) determination for the [Euclid](http://www.euclid-ec.org/) mission is crutial. One of the factor hampering the reconstruction is the presence of multiple stars in the star field. We propose a tool to identify those binaries based on the repeated measurements of the light profile.
 
 ## Abstract of the upcoming paper
-This is a code which is currently under heavy development.
 
 _Context_. Exquisite point spread function (PSF) reconstruction is demanded to measure weak gravitation lensing signal to the level required by next generation of space-based surveys. Unresolved multiple stars can distort the true PSF shape by up to a few percent.
 
