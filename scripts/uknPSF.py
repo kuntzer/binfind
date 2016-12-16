@@ -262,6 +262,7 @@ for iix, (crit_angsep, crit_contrast) in enumerate(criteria):
 		metrics=[acf_rocs[:,3], rf_rocs[:,3]], 
 		metrics_label=r"$F_1\ \mathrm{score}$", labels=labels)
 	figfname = os.path.join(outdir, "figures", "roc_sep{:.0f}_con{:.0f}".format(crit_angsep*1e3, crit_contrast*10))
+	binfind.utils.writepickle([[acf_rocs, acfe1_rocs, acfe2_rocs, acfr2_rocs, rf_rocs, ann_rocs], labels, figfname], os.path.join(outdir, "roc_params_sep{:.0f}_con{:.0f}.pkl".format(crit_angsep*1e3, crit_contrast*10)))
 	binfind.plots.figures.savefig(figfname, fig, fancy=True, pdf_transparence=True)
 	if show: plt.show()
 	plt.close()

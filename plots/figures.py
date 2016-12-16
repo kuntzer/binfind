@@ -7,7 +7,8 @@ import numpy as np
 import matplotlib
 
 def get_colors():
-	return ['k', 'orange', 'skyblue', 'seagreen', "#984ea3", 'r', "#a65628", "#f781bf", "#4daf4a"]
+	return ['k', 'orange', 'skyblue', 'lightgrey', "royalblue", 'r', "#a65628", "#f781bf", "#4daf4a"]
+	#return ['k', 'orange', 'skyblue', 'seagreen', "#984ea3", 'r', "#a65628", "#f781bf", "#4daf4a"]
 
 def savefig(fname,fig,fancy=False,pdf_transparence=True):
 	import os
@@ -31,7 +32,8 @@ def savefig(fname,fig,fancy=False,pdf_transparence=True):
 def set_fancy(txtsize=16):
 	from matplotlib import rc
 	#rc('font',**{'family':'serif','serif':['Palatino'],'size':16})
-	rc('font',**{'family':'serif','size':txtsize})
+	rc('font',**{'size':txtsize})
+	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 	rc('text', usetex=True)
 
 

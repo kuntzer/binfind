@@ -34,12 +34,26 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 	if metrics is None:
 		metrics = len(params) * [None]
 
-	cmap = plt.get_cmap('plasma')
+	"""
+	import matplotlib
+	#cmap = matplotlib.colors.Colormap('plasma')
+	cmap = plt.cm.get_cmap('plasma')#, N=5)#, 11)#'plasma', 11)
+	
+	# define the colormap
+	# extract all colors from the .jet map
+	cmaplist = [cmap(i) for i in range(cmap.N)]
+	# force the first color entry to be grey
+	#cmaplist[0] = (.5,.5,.5,1.0)
+	# create the new map
+	cmap = cmap.from_list('Custom cmap', cmaplist, cmap.N)
+	"""
+	import matplotlib.colors
+
 	
 	# Round up to the nearest 0.1
 	metrics_vs = np.array(metrics)
-	metric_vmin = np.floor(np.amin(metrics_vs) * 10) / 10
-	metric_vmax = np.ceil(np.amax(metrics_vs) * 10) / 10
+	metric_vmin = 0#np.floor(np.amin(metrics_vs) * 10) / 10
+	metric_vmax = 1#np.ceil(np.amax(metrics_vs) * 10) / 10
 
 	for p, c, l, metric in zip(params, colors, labels, metrics):
 		
@@ -51,7 +65,7 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 		else:
 			l = r'${:s}={:.02f}$'.format(l, auc)
 			
-		mykwargs = {"ls":"-", "alpha":1., "lw":1.5, "color":c, "label":l}
+		mykwargs = {"ls":"-", "alpha":1., "lw":2.5, "color":c, "label":l}
 		# We overwrite these mykwargs with any user-specified kwargs:
 		mykwargs.update(kwargs)
 			
@@ -60,18 +74,23 @@ def roc(ax, params, metrics=None, metrics_label=None, colors=None, labels=None, 
 		if metric is not None:
 			m = np.concatenate([[metric[-1]], metric[indx], [metric[0]]])
 			
-			cax = ax.scatter(fpr_, tpr_, edgecolor="None", c=m, cmap=cmap, s=5, vmin=metric_vmin, vmax=metric_vmax)
-
-			points = np.array([fpr_, tpr_]).T.reshape(-1, 1, 2)
-			segments = np.concatenate([points[:-1], points[1:]], axis=1)
+			cmap = plt.cm.get_cmap('plasma')
+			bounds = np.linspace(0, 1, 6)
+			norm = matplotlib.colors.BoundaryNorm(boundaries=bounds, ncolors=256)
 			
-			lc = LineCollection(segments, cmap=cmap, alpha=0.8, norm=plt.Normalize(metric_vmin, metric_vmax))
+			cax = ax.scatter(fpr_, tpr_, edgecolor="None", c=m, cmap=cmap, s=90, marker="o", alpha=0.8, vmin=metric_vmin, vmax=metric_vmax, norm=norm)
+			
+			points = np.array([fpr_, tpr_]).T.reshape(-1, 1, 2)
+			segments = np.concatenate([points[:-1,::1], points[1:,::1]], axis=1)
+	
+			
+			lc = LineCollection(segments, cmap=cmap, alpha=0.8, norm=norm)
 			lc.set_array(m)
-			lc.set_linewidth(6)
+			lc.set_linewidth(10)
 			plt.gca().add_collection(lc)
 			
 	if metric is not None:
-		cb = plt.colorbar(cax, ticks=np.linspace(0,1,11))
+		cb = plt.colorbar(cax, ticks=np.linspace(0,1,6))
 		if metrics_label is None:
 			metrics_label = r"$\mathrm{Metrics\ score}$"
 		cb.set_label(metrics_label)
