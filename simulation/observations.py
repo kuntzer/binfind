@@ -211,10 +211,11 @@ class Observations():
 				d = d[d > 0]
 				weights = 1. / (d*2)
 		
+				print np.shape(observed_stars[inds,:,2])
 				obs_e1 = np.median(observed_stars[inds,:,2], axis=1)
 				obs_e2 = np.median(observed_stars[inds,:,3], axis=1)
 				obs_r2 = np.median(observed_stars[inds,:,4], axis=1)
-				
+				print np.shape(obs_e1); exit()
 				try:	
 					dinterp_e1 = np.average(obs_e1, weights=weights) 
 				except :
