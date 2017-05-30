@@ -10,6 +10,9 @@ def get_colors():
 	return ['k', 'orange', 'skyblue', 'lightgrey', "royalblue", 'r', "#a65628", "#f781bf", "#4daf4a"]
 	#return ['k', 'orange', 'skyblue', 'seagreen', "#984ea3", 'r', "#a65628", "#f781bf", "#4daf4a"]
 
+def get_markers():
+	return ['D', 's', 'p', '^', "v", "o"]
+
 def savefig(fname,fig,fancy=False,pdf_transparence=True):
 	import os
 	import subprocess

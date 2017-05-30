@@ -9,7 +9,7 @@ import utils as u
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s(%(funcName)s): %(message)s', level=logging.DEBUG)
 
-ch_id = {"e1": [1,2,3,4], "e2": [4,5,6,7], "r2": [8,9,10,11]}
+ch_id = {"e1": [0,1,2,3], "e2": [4,5,6,7], "r2": [8,9,10,11]}
 ch_w = {"e1": 0.7, "e2": 0.55, "r2": 0.0}
 n_exposures = 4
 acf_class = binfind.classifier.ACF(ch_id, ch_w, n_exposures)
